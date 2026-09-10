@@ -6,6 +6,53 @@
   <meta name="description" content="Compare an uploaded audio transcription against a reference JSON transcript." />
   <title>Transcript Match</title>
   <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .browse-button {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 1px solid rgba(105, 85, 255, 0.22);
+      border-radius: 12px;
+      background: rgba(105, 85, 255, 0.08);
+      color: #5f51f4;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .browse-button:hover {
+      background: rgba(105, 85, 255, 0.14);
+      border-color: rgba(105, 85, 255, 0.34);
+      transform: translateY(-1px);
+    }
+    .browse-button:focus-visible {
+      outline: 3px solid rgba(105, 85, 255, 0.2);
+      outline-offset: 2px;
+    }
+    .browse-button svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .browse-button.audio-browse {
+      background: #17181f;
+      color: #fff;
+      border-color: #17181f;
+    }
+    .browse-button.audio-browse:hover {
+      background: #242630;
+      border-color: #242630;
+    }
+  </style>
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -41,6 +88,10 @@
           <div class="file-kicker">Step 01</div>
           <h2>Upload audio</h2>
           <p>Drop a WAV or MP3 here, or click to browse.</p>
+          <button type="button" class="browse-button audio-browse" onclick="event.stopPropagation(); document.getElementById('audioInput').click();">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+            Choose audio file
+          </button>
           <div class="file-rule">Maximum size <strong>20 MB</strong></div>
           <div class="selected-file hidden" id="audioSelected">
             <div class="selected-file-main">
@@ -62,6 +113,10 @@
           <div class="file-kicker">Step 02</div>
           <h2>Upload reference JSON</h2>
           <p>Use your existing transcript JSON file.</p>
+          <button type="button" class="browse-button" onclick="event.stopPropagation(); document.getElementById('jsonInput').click();">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+            Choose JSON file
+          </button>
           <div class="json-sample" aria-label="Sample JSON format">
             <div class="json-sample-title">Sample JSON format</div>
             <pre>[
