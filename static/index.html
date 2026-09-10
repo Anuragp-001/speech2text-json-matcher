@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Compare an uploaded audio transcription against a reference JSON transcript." />
+  <title>Transcript Match</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="page-shell">
+    <nav class="topbar">
+      <a class="brand" href="/" aria-label="Transcript Match home">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2l2-6 4 12 3-8 2 2h3"/></svg>
+        </span>
+        <span>Transcript Match</span>
+      </a>
+      <span class="privacy-chip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.9-3 8.2-7 10-4-1.8-7-5.1-7-10V6l7-3z"/><path d="M9.5 12l1.6 1.6 3.6-3.7"/></svg>
+        API key stays server-side
+      </span>
+    </nav>
+
+    <section class="hero" id="heroSection">
+      <div class="eyebrow"><span></span> Audio transcription evaluator</div>
+      <h1>How close is the<br/><em>transcription?</em></h1>
+      <p>Upload one WAV or MP3 file with its reference JSON. The app transcribes the audio, compares both versions, and gives you a clear match score.</p>
+    </section>
+
+    <section class="workspace" id="uploadSection">
+      <div class="upload-grid">
+        <article class="upload-card" id="audioDropzone" tabindex="0" role="button" aria-label="Upload audio file">
+          <input id="audioInput" type="file" accept=".wav,.mp3,audio/wav,audio/mpeg" hidden />
+          <div class="upload-icon audio-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+          </div>
+          <div class="file-kicker">Step 01</div>
+          <h2>Upload audio</h2>
+          <p>Drop a WAV or MP3 here, or click to browse.</p>
+          <div class="file-rule">Maximum size <strong>20 MB</strong></div>
+          <div class="selected-file hidden" id="audioSelected">
+            <div class="selected-file-main">
+              <span class="file-status-dot"></span>
+              <div>
+                <strong id="audioFileName"></strong>
+                <span id="audioFileSize"></span>
+              </div>
+            </div>
+            <button type="button" class="remove-file" id="removeAudio" aria-label="Remove audio">×</button>
+          </div>
+        </article>
+
+        <article class="upload-card" id="jsonDropzone" tabindex="0" role="button" aria-label="Upload transcript JSON">
+          <input id="jsonInput" type="file" accept=".json,application/json" hidden />
+          <div class="upload-icon json-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M10 8l-2 4 2 4M14 8l2 4-2 4"/></svg>
+          </div>
+          <div class="file-kicker">Step 02</div>
+          <h2>Upload reference JSON</h2>
+          <p>Use your existing transcript JSON file.</p>
+          <div class="json-sample" aria-label="Sample JSON format">
+            <div class="json-sample-title">Sample JSON format</div>
+            <pre>[
+  {
+    "start_time": 2.34,
+    "end_time": 5.78,
+    "speaker_type": "owner",
+    "transcript": "Hello, how are you?"
+  }
+]</pre>
+          </div>
+          <div class="file-rule">Looks for <strong>transcript</strong> text automatically</div>
+          <div class="selected-file hidden" id="jsonSelected">
+            <div class="selected-file-main">
+              <span class="file-status-dot"></span>
+              <div>
+                <strong id="jsonFileName"></strong>
+                <span id="jsonFileInfo"></span>
+              </div>
+            </div>
+            <button type="button" class="remove-file" id="removeJson" aria-label="Remove JSON">×</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="action-panel">
+        <div class="ready-copy">
+          <span class="ready-dot" id="readyDot"></span>
+          <div>
+            <strong id="readyTitle">Add both files to continue</strong>
+            <span id="readySubtitle">Nothing is sent until you click Analyze match.</span>
+          </div>
+        </div>
+        <button class="primary-button" id="analyzeButton" disabled>
+          <span>Analyze match</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="processing hidden" id="processingSection" aria-live="polite">
+      <div class="loader-orbit"><span></span></div>
+      <h2>Analyzing your audio</h2>
+      <p id="processingMessage">Uploading and preparing the recording…</p>
+      <div class="progress-track"><span id="progressBar"></span></div>
+      <small>Longer recordings can take a little longer to process.</small>
+    </section>
+
+    <section class="results hidden" id="resultsSection">
+      <div class="results-heading">
+        <div>
+          <div class="eyebrow"><span></span> Comparison complete</div>
+          <h2>Match report</h2>
+          <p id="resultFileLine"></p>
+        </div>
+        <button class="secondary-button" id="newComparisonButton">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/></svg>
+          New comparison
+        </button>
+      </div>
+
+      <div class="score-layout">
+        <article class="score-card">
+          <div class="score-ring" id="scoreRing">
+            <div class="score-ring-inner">
+              <strong id="matchScore">0%</strong>
+              <span>overall match</span>
+            </div>
+          </div>
+          <div class="score-copy">
+            <span class="quality-pill" id="qualityPill">—</span>
+            <h3 id="qualityTitle">Comparison score</h3>
+            <p id="qualityDescription">Your result will appear here.</p>
+          </div>
+        </article>
+
+        <div class="metric-grid">
+          <article class="metric-card"><span>Word accuracy</span><strong id="wordAccuracy">—</strong><small>Correct reference words</small></article>
+          <article class="metric-card"><span>Character similarity</span><strong id="charSimilarity">—</strong><small>Text-level similarity</small></article>
+          <article class="metric-card"><span>Word error rate</span><strong id="wer">—</strong><small>Lower is better</small></article>
+          <article class="metric-card"><span>Reference words</span><strong id="referenceWords">—</strong><small id="modelWords">— model words</small></article>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <article class="transcript-card">
+          <header><div><span class="card-label">Reference</span><h3>Uploaded transcript</h3></div><span class="word-count" id="referenceCount"></span></header>
+          <div class="transcript-text" id="referenceTranscript"></div>
+        </article>
+        <article class="transcript-card">
+          <header><div><span class="card-label accent">Generated</span><h3>Audio transcription</h3></div><span class="word-count" id="generatedCount"></span></header>
+          <div class="transcript-text" id="modelTranscript"></div>
+        </article>
+      </div>
+
+      <article class="segments-card" id="segmentsCard">
+        <header>
+          <div><span class="card-label">Detailed view</span><h3>Segment-by-segment match</h3></div>
+          <span class="language-badge" id="languageBadge">Language: auto</span>
+        </header>
+        <div class="segments-list" id="segmentsList"></div>
+      </article>
+    </section>
+
+    <section class="error-panel hidden" id="errorPanel" role="alert">
+      <div class="error-icon">!</div>
+      <div><strong>Couldn’t complete the comparison</strong><p id="errorMessage"></p></div>
+      <button type="button" id="dismissError">×</button>
+    </section>
+
+    <footer>
+      <span>Transcript Match</span>
+      <span>WAV / MP3 · up to 20 MB · JSON reference</span>
+    </footer>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
